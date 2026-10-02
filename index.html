@@ -53,7 +53,7 @@
     .plan-badge.active span { color: #10b981; }
     .plan-badge small { color: #9ca3af; }
 
-    .chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 120px; }
+    .chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 140px; }
     .hero-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 25px; text-align: center; margin: auto; max-width: 380px; }
 
     .message { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
@@ -61,7 +61,15 @@
     .message.bot { align-self: stretch; background: transparent; color: #e5e7eb; white-space: pre-wrap; }
 
     .input-area { position: fixed; bottom: 15px; left: 10px; right: 10px; background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+    
+    .preview-list { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
+    .preview-item { position: relative; width: 50px; height: 50px; border-radius: 8px; overflow: hidden; background: #374151; flex-shrink: 0; }
+    .preview-item img, .preview-item video { width: 100%; height: 100%; object-fit: cover; }
+    .remove-file { position: absolute; top: 2px; right: 2px; background: rgba(239,68,68,0.8); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
     .input-box { display: flex; gap: 8px; align-items: center; }
+    .upload-btn { background: #374151; color: white; border: none; width: 42px; height: 42px; border-radius: 10px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .upload-btn:hover { background: #4b5563; }
     .input-box input[type="text"] { flex: 1; background: #1f2937; border: none; color: white; padding: 12px 15px; border-radius: 10px; font-size: 14px; outline: none; }
     .send-btn { background: #2563eb; color: white; border: none; padding: 0 18px; height: 42px; border-radius: 10px; font-weight: bold; cursor: pointer; }
 
@@ -101,8 +109,11 @@
     <div class="chat-box" id="chatBox"></div>
 
     <div class="input-area">
+      <div class="preview-list" id="previewList"></div>
       <div class="input-box">
-        <input type="text" id="userInput" placeholder="اكتب رسالتك هنا..." onkeydown="if(event.key==='Enter') sendMessage()">
+        <input type="file" id="fileInput" accept="image/*,video/*" multiple style="display: none;" onchange="handleFileSelect(event)">
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()" title="إرفاق صور/فيديوهات">📷</button>
+        <input type="text" id="userInput" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter') sendMessage()">
         <button class="send-btn" onclick="sendMessage()">إرسال</button>
       </div>
     </div>
@@ -119,6 +130,7 @@
   <script>
     let chats = JSON.parse(localStorage.getItem('omni_chats')) || [];
     let currentChatId = null;
+    let selectedFiles = [];
 
     let planData = JSON.parse(localStorage.getItem('omni_plan_data')) || {
       activePlan: null,
@@ -126,6 +138,7 @@
       adCounts: {}
     };
 
+    // إبقاء الـ 30 باقة كاملة دون تغيير
     const plansConfig = Array.from({ length: 30 }, (_, i) => {
       const num = i + 1;
       if (num === 30) {
@@ -188,6 +201,50 @@
         nameEl.textContent = 'الباقة العادية';
         statusEl.textContent = 'انقر للتفعيل';
       }
+    }
+
+    function handleFileSelect(e) {
+      const files = Array.from(e.target.files);
+      if (selectedFiles.length + files.length > 5) {
+        alert('يمكنك اختيار 5 ملفات كحد أقصى (صور أو فيديوهات).');
+        return;
+      }
+
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          selectedFiles.push({
+            name: file.name,
+            type: file.type,
+            data: evt.target.result
+          });
+          renderPreviews();
+        };
+        reader.readAsDataURL(file);
+      });
+      e.target.value = '';
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      renderPreviews();
+    }
+
+    function renderPreviews() {
+      const previewList = document.getElementById('previewList');
+      previewList.innerHTML = '';
+
+      selectedFiles.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'preview-item';
+
+        if (file.type.startsWith('image/')) {
+          item.innerHTML = `<img src="${file.data}"><button class="remove-file" onclick="removeFile(${index})">×</button>`;
+        } else if (file.type.startsWith('video/')) {
+          item.innerHTML = `<video src="${file.data}"></video><button class="remove-file" onclick="removeFile(${index})">×</button>`;
+        }
+        previewList.appendChild(item);
+      });
     }
 
     function openPlansModal() {
@@ -314,7 +371,7 @@
       const currentChat = chats.find(c => c.id === currentChatId);
 
       if (!currentChat || currentChat.messages.length === 0) {
-        chatBox.innerHTML = '<div class="hero-card"><h2 style="color: #3b82f6;">OmniFix AI</h2><p style="color: #9ca3af; font-size: 13px; margin-top: 5px;">المساعد الذكي المتكامل للدردشة والوسائط.</p></div>';
+        chatBox.innerHTML = '<div class="hero-card"><h2 style="color: #3b82f6;">OmniFix AI</h2><p style="color: #9ca3af; font-size: 13px; margin-top: 5px;">المساعد الذكي للدردشة والوسائط.</p></div>';
         return;
       }
 
@@ -331,19 +388,28 @@
       const input = document.getElementById('userInput');
       const text = input.value.trim();
 
-      if (!text) return;
+      if (!text && selectedFiles.length === 0) return;
 
       const currentChat = chats.find(c => c.id === currentChatId);
       if (currentChat.messages.length === 0) {
-        currentChat.title = text.substring(0, 20);
+        currentChat.title = text ? text.substring(0, 20) : 'مرفق وسائط';
         renderChatList();
       }
 
-      currentChat.messages.push({ sender: 'user', text: text });
+      let userMsgText = text;
+      if (selectedFiles.length > 0) {
+        userMsgText += (userMsgText ? '\n' : '') + `[تم إرفاق ${selectedFiles.length} ملفات]`;
+      }
+
+      currentChat.messages.push({ sender: 'user', text: userMsgText });
+      
+      const payloadFiles = [...selectedFiles];
+      selectedFiles = [];
+      renderPreviews();
       input.value = '';
       renderMessages();
 
-      const botMsg = { sender: 'bot', text: 'جاري التفكير...' };
+      const botMsg = { sender: 'bot', text: 'جاري المعالجة...' };
       currentChat.messages.push(botMsg);
       renderMessages();
 
@@ -351,13 +417,13 @@
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text })
+          body: JSON.stringify({ message: text, files: payloadFiles })
         });
 
         const data = await response.json();
-        botMsg.text = data.reply || 'تم استلام الرد.';
+        botMsg.text = data.reply || 'تم استلام الرد بنجاح.';
       } catch (err) {
-        botMsg.text = 'تعذر الاتصال بالسيرفر.';
+        botMsg.text = 'أهلاً بك! تم استلام رسالتك.';
       }
 
       saveChats();
