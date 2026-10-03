@@ -2,15 +2,17 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OmniFix AI</title>
     <style>
         :root {
-            --bg-dark: #0f172a;
-            --panel-bg: #1e293b;
+            --bg-dark: #0a0f1d;
+            --panel-bg: #111827;
+            --card-bg: #1f2937;
             --accent: #2563eb;
-            --text: #f8fafc;
-            --muted: #94a3b8;
+            --accent-green: #10b981;
+            --text: #f9fafb;
+            --muted: #9ca3af;
         }
 
         * {
@@ -28,20 +30,21 @@
             overflow: hidden;
         }
 
-        /* القائمة الجانبية للمحادثات */
+        /* القائمة الجانبية لحفظ المحادثات */
         #sidebar {
-            width: 260px;
+            width: 280px;
             background-color: var(--panel-bg);
             padding: 15px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             position: fixed;
             top: 0;
-            right: -260px;
+            right: -280px;
             height: 100%;
             transition: 0.3s ease;
             z-index: 100;
+            border-left: 1px solid rgba(255,255,255,0.05);
         }
 
         #sidebar.open {
@@ -52,34 +55,47 @@
             background: var(--accent);
             color: white;
             border: none;
-            padding: 10px;
+            padding: 12px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
+            font-size: 15px;
         }
 
         .chat-list {
             flex: 1;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .chat-item {
-            padding: 10px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 6px;
-            margin-bottom: 5px;
+            padding: 12px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 8px;
             cursor: pointer;
-            display: flex;
-            justify-content: space-between;
+            color: var(--text);
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid transparent;
         }
 
-        /* المنطقة الرئيسية */
+        .chat-item:hover, .chat-item.active {
+            border-color: var(--accent);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        /* الواجهة الرئيسية */
         #main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
             height: 100%;
             width: 100%;
+            position: relative;
         }
 
         /* الهيدر العلوي */
@@ -87,290 +103,538 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px;
+            padding: 12px 16px;
             background: var(--panel-bg);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
 
         .plan-badge {
-            background: rgba(37, 99, 235, 0.2);
-            border: 1px solid var(--accent);
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--accent-green);
             padding: 6px 12px;
             border-radius: 8px;
-            font-size: 12px;
             cursor: pointer;
-            color: #60a5fa;
+            text-align: center;
         }
 
-        /* منطقة الدردشة الفقاعية */
-        #chat-box {
+        .plan-badge .title {
+            color: #34d399;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .plan-badge .timer {
+            color: #a7f3d0;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        header h1 {
+            font-size: 20px;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* منطقة الشاشة الرئيسية */
+        #display-area {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            justify-content: flex-start;
+            gap: 20px;
         }
 
-        .message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 12px;
+        .welcome-card {
+            text-align: center;
+            background: rgba(31, 41, 55, 0.4);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 35px 25px;
+            border-radius: 16px;
+            max-width: 400px;
+            margin: auto;
+            width: 90%;
+        }
+
+        .welcome-card h2 {
+            font-size: 26px;
+            color: #3b82f6;
+            margin-bottom: 12px;
+        }
+
+        .welcome-card p {
+            color: var(--muted);
+            font-size: 14px;
             line-height: 1.6;
-            word-wrap: break-word;
-            white-space: pre-wrap;
         }
 
-        .user-message {
+        /* فقاعة حوار السؤال المخصصة لك */
+        .user-question-bubble {
             align-self: flex-start;
-            background: var(--accent);
-            color: white;
+            background: rgba(37, 99, 235, 0.2);
+            border: 1px solid var(--accent);
+            border-radius: 14px;
             border-bottom-right-radius: 2px;
+            padding: 12px 18px;
+            max-width: 85%;
+            color: #ffffff;
+            font-size: 15px;
+            line-height: 1.5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        .ai-message {
-            align-self: flex-end;
-            background: var(--panel-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text);
-            border-bottom-left-radius: 2px;
-        }
-
-        .media-preview {
-            max-width: 200px;
-            border-radius: 8px;
-            margin-top: 8px;
-            display: block;
-        }
-
-        /* الشريط السفلي للإدخال */
-        .input-area {
-            padding: 15px;
-            background: var(--panel-bg);
+        .user-question-images {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .user-question-images img {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* إجابة الذكاء الاصطناعي - مفتوحة على كامل عرض الواجهة بدون فقاعة */
+        .ai-full-response {
+            width: 100%;
+            color: #f3f4f6;
+            font-size: 16px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+            padding: 10px 5px 20px 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* شريط الإدخال السفلي مع المعاينة المصغرة للصور */
+        .input-container {
+            padding: 10px 16px 16px 16px;
+            background: var(--panel-bg);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* المعاينة المصغرة الكثيرة للصور فوق شريط الكتابة */
+        .media-preview-bar {
+            display: none;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .media-preview-bar .thumb-box {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .media-preview-bar img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--accent);
+        }
+
+        .media-preview-bar .remove-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
             align-items: center;
+            justify-content: center;
+        }
+
+        .input-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .input-wrapper {
             flex: 1;
+            background: var(--bg-dark);
+            border-radius: 10px;
             display: flex;
             align-items: center;
-            background: var(--bg-dark);
-            border-radius: 8px;
-            padding: 5px 10px;
+            padding: 4px 12px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        input[type="text"] {
+        .input-wrapper input {
             flex: 1;
             background: transparent;
             border: none;
             color: white;
-            padding: 10px;
+            padding: 10px 5px;
             outline: none;
-            font-size: 1rem;
+            font-size: 15px;
         }
 
-        .file-btn {
+        .add-btn {
             background: none;
             border: none;
-            color: var(--muted);
-            font-size: 22px;
+            color: #3b82f6;
+            font-size: 24px;
             cursor: pointer;
-            padding: 5px;
+            padding: 0 5px;
         }
 
-        .btn-send {
+        .send-btn {
             background: var(--accent);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
+            padding: 12px 22px;
+            border-radius: 10px;
             font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
         }
 
-        /* نافذة الباقات */
+        /* نافذة الباقات الـ 30 */
         #plan-modal {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             justify-content: center;
             align-items: center;
             z-index: 200;
         }
 
-        .modal-body {
+        .modal-content {
             background: var(--panel-bg);
+            border-radius: 16px;
+            width: 92%;
+            max-width: 440px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
             padding: 20px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .plan-card {
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 12px;
-            border-radius: 8px;
-            margin: 10px 0;
+        .modal-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .plans-scroll {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .plan-card-item {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .btn-ad {
-            background: #10b981;
+        .plan-info .title {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .plan-info .meta {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .ad-btn {
+            background: var(--accent-green);
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
             cursor: pointer;
+        }
+
+        .close-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
         }
     </style>
 </head>
 <body>
 
-    <!-- القائمة الجانبية للمحادثات -->
+    <!-- القائمة الجانبية -->
     <div id="sidebar">
-        <button class="btn-new-chat" onclick="newChat()">+ محادثة جديدة</button>
+        <button class="btn-new-chat" onclick="createNewChat()">+ محادثة جديدة</button>
         <div class="chat-list" id="chat-list"></div>
     </div>
 
+    <!-- الواجهة الرئيسية -->
     <div id="main-content">
         <header>
             <div class="plan-badge" onclick="openPlans()">
-                <div id="current-plan-name">الباقة العادية</div>
-                <small style="color: #aaa;">انقر للترقية</small>
+                <div class="title" id="active-plan-title">الباقة العادية</div>
+                <div class="timer">(11:59:59) مفعلة</div>
             </div>
-            <h2>OmniFix AI</h2>
-            <button class="file-btn" onclick="toggleSidebar()">☰</button>
+            <h1>OmniFix AI</h1>
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
         </header>
 
-        <div id="chat-box">
-            <div class="message ai-message">أهلاً بك! أنا مساعد OmniFix AI، كيف يمكنني مساعدتك اليوم؟</div>
+        <div id="display-area">
+            <div class="welcome-card" id="welcome-card">
+                <h2>OmniFix AI</h2>
+                <p>المساعد الذكي المتكامل للدردشة والنصوص والوسائط.</p>
+            </div>
         </div>
 
-        <div id="attachment-preview" style="padding: 0 15px; display: none;"></div>
+        <div class="input-container">
+            <!-- شريط الصور المصغرة المرفقة فوق الكتابة -->
+            <div class="media-preview-bar" id="media-preview-bar"></div>
 
-        <div class="input-area">
-            <input type="file" id="media-input" accept="image/*,video/*" style="display:none" onchange="handleFileSelect(event)">
-            <button class="file-btn" onclick="document.getElementById('media-input').click()">+</button>
-            <div class="input-wrapper">
-                <input type="text" id="user-input" placeholder="اكتب رسالتك هنا..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <div class="input-box">
+                <!-- إتاحة اختيار صور متعددة multiple -->
+                <input type="file" id="media-file" accept="image/*" multiple style="display:none" onchange="onFilesSelected(event)">
+                <button class="add-btn" onclick="document.getElementById('media-file').click()">+</button>
+                <div class="input-wrapper">
+                    <input type="text" id="user-input" placeholder="اكتب رسالتك هنا..." onkeypress="if(event.key==='Enter') sendRequest()">
+                </div>
+                <button class="send-btn" onclick="sendRequest()">إرسال</button>
             </div>
-            <button class="btn-send" id="send-btn" onclick="sendMessage()">إرسال</button>
         </div>
     </div>
 
-    <!-- نافذة الباقات والترقيات -->
+    <!-- نافذة الباقات الـ 30 -->
     <div id="plan-modal">
-        <div class="modal-body">
-            <h3>قائمة الباقات والترقيات</h3>
-            <div class="plan-card">
-                <div>
-                    <div>باقة 3: الذكاء السريع</div>
-                    <small>12س | 3 إعلانات</small>
-                </div>
-                <button class="btn-ad" onclick="watchAd('الذكاء السريع', 3)">مشاهدة (0/3)</button>
-            </div>
-            <div class="plan-card">
-                <div>
-                    <div>باقة 5: الذكاء الخارق</div>
-                    <small>12س | 5 إعلانات</small>
-                </div>
-                <button class="btn-ad" onclick="watchAd('الذكاء الخارق', 5)">مشاهدة (0/5)</button>
-            </div>
-            <div class="plan-card">
-                <div>
-                    <div>باقة VIP الاحترافية</div>
-                    <small>12س | 30 إعلان</small>
-                </div>
-                <button class="btn-ad" onclick="watchAd('VIP الاحترافية', 30)">مشاهدة (0/30)</button>
-            </div>
-            <button onclick="closePlans()" style="width:100%; padding:10px; margin-top:10px; background:#ef4444; color:white; border:none; border-radius:6px; cursor:pointer;">إغلاق</button>
+        <div class="modal-content">
+            <div class="modal-header">قائمة الباقات والترقيات</div>
+            <div class="plans-scroll" id="plans-container"></div>
+            <button class="close-btn" onclick="closePlans()">إغلاق</button>
         </div>
     </div>
 
     <script>
-        let selectedFile = null;
+        let chats = JSON.parse(localStorage.getItem('omnifix_chats') || '[]');
+        let currentChatId = null;
+        let selectedFiles = [];
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
+        const planNames = [
+            "الأساسية", "الذكاء السريع", "الذكاء المتقدم", "الذكاء الفائق", "المحترف", 
+            "الاحترافية", "المبتكر", "المطور", "الخبير", "العملاق",
+            "المطورة Max", "Super AI", "Ultra Speed", "Mega AI", "Turbo Fast",
+            "Omni16 Pro", "Omni17 Ultra", "Omni18 Master", "Omni19 Elite", "Omni20 Prime",
+            "Omni21 Plus", "Omni22 Max", "Omni23 Turbo", "Omni24 Hyper", "Omni25 Ultimate",
+            "Omni26 Max", "Omni27 Max", "Omni28 Ultra", "باقة الذكاء الخارق", "باقة VIP الاحترافية"
+        ];
+
+        function renderPlans() {
+            const container = document.getElementById('plans-container');
+            container.innerHTML = '';
+            for (let i = 1; i <= 30; i++) {
+                const name = `باقة ${i}: ${planNames[i-1]}`;
+                const card = document.createElement('div');
+                card.className = 'plan-card-item';
+                card.innerHTML = `
+                    <div class="plan-info">
+                        <div class="title">${name}</div>
+                        <div class="meta">
+                            <span>⏱️ 12 ساعة</span>
+                            <span>📺 ${i} إعلان</span>
+                        </div>
+                    </div>
+                    <button class="ad-btn" onclick="watchAd('${name}', ${i})">مشاهدة (0/${i})</button>
+                `;
+                container.appendChild(card);
+            }
         }
 
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function openPlans() { document.getElementById('plan-modal').style.display = 'flex'; }
         function closePlans() { document.getElementById('plan-modal').style.display = 'none'; }
 
-        function watchAd(planName, required) {
-            alert(`سيتم تشغيل الإعلانات الخاصة بـ ${planName}`);
+        function watchAd(planTitle, count) {
+            alert(`سيتم فتح الإعلان (${count}). عند اكماله ستتفعل ${planTitle} لمدة 12 ساعة.`);
+            document.getElementById('active-plan-title').innerText = planTitle;
+            closePlans();
         }
 
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (file) {
-                selectedFile = file;
-                const preview = document.getElementById('attachment-preview');
-                preview.style.display = 'block';
-                preview.innerHTML = `<small style="color:#60a5fa">تم إرفاق: ${file.name}</small>`;
+        /* اختيار صور متعددة وإظهارها مصغرة فوق شريط الكتابة */
+        function onFilesSelected(e) {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    selectedFiles.push(event.target.result);
+                    renderPreviewThumbs();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderPreviewThumbs() {
+            const bar = document.getElementById('media-preview-bar');
+            if (selectedFiles.length === 0) {
+                bar.style.display = 'none';
+                return;
             }
+            bar.style.display = 'flex';
+            bar.innerHTML = '';
+            selectedFiles.forEach((src, idx) => {
+                const box = document.createElement('div');
+                box.className = 'thumb-box';
+                box.innerHTML = `
+                    <img src="${src}">
+                    <button class="remove-btn" onclick="removeThumb(${idx})">×</button>
+                `;
+                bar.appendChild(box);
+            });
         }
 
-        async function sendMessage() {
+        function removeThumb(idx) {
+            selectedFiles.splice(idx, 1);
+            renderPreviewThumbs();
+        }
+
+        function createNewChat() {
+            currentChatId = Date.now().toString();
+            chats.unshift({ id: currentChatId, title: 'محادثة جديدة', history: [] });
+            saveChats();
+            renderSidebar();
+            showWelcome();
+            if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
+        }
+
+        function saveChats() { localStorage.setItem('omnifix_chats', JSON.stringify(chats)); }
+
+        function renderSidebar() {
+            const list = document.getElementById('chat-list');
+            list.innerHTML = '';
+            chats.forEach(chat => {
+                const item = document.createElement('div');
+                item.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
+                item.innerText = chat.title;
+                item.onclick = () => loadChat(chat.id);
+                list.appendChild(item);
+            });
+        }
+
+        function loadChat(id) {
+            currentChatId = id;
+            renderSidebar();
+            const chat = chats.find(c => c.id === id);
+            if (!chat || chat.history.length === 0) {
+                showWelcome();
+            } else {
+                renderFullChat(chat);
+            }
+            if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
+        }
+
+        function showWelcome() {
+            document.getElementById('display-area').innerHTML = `
+                <div class="welcome-card">
+                    <h2>OmniFix AI</h2>
+                    <p>المساعد الذكي المتكامل للدردشة والنصوص والوسائط.</p>
+                </div>
+            `;
+        }
+
+        /* عرض محتوى الصفحة: فقاعة حوار للسؤال، وإجابة كاملة للذكاء الاصطناعي */
+        function renderFullChat(chat) {
+            const area = document.getElementById('display-area');
+            area.innerHTML = '';
+
+            chat.history.forEach(item => {
+                if (item.role === 'user') {
+                    // فقاعة حوار السؤال المخصصة لك
+                    const qBubble = document.createElement('div');
+                    qBubble.className = 'user-question-bubble';
+                    qBubble.innerText = item.text;
+
+                    if (item.images && item.images.length > 0) {
+                        const imgBox = document.createElement('div');
+                        imgBox.className = 'user-question-images';
+                        item.images.forEach(imgSrc => {
+                            imgBox.innerHTML += `<img src="${imgSrc}">`;
+                        });
+                        qBubble.appendChild(imgBox);
+                    }
+                    area.appendChild(qBubble);
+                } else {
+                    // إجابة الذكاء الاصطناعي كاملة ومباشرة على الواجهة
+                    const aiResp = document.createElement('div');
+                    aiResp.className = 'ai-full-response';
+                    aiResp.innerText = item.text;
+                    area.appendChild(aiResp);
+                }
+            });
+
+            area.scrollTop = area.scrollHeight;
+        }
+
+        async function sendRequest() {
             const input = document.getElementById('user-input');
-            const chatBox = document.getElementById('chat-box');
-            const messageText = input.value.trim();
+            const text = input.value.trim();
+            if (!text && selectedFiles.length === 0) return;
 
-            if (!messageText && !selectedFile) return;
-
-            // 1. عرض فقاعة رسالة المستخدم
-            const userDiv = document.createElement('div');
-            userDiv.className = 'message user-message';
-            userDiv.innerText = messageText;
-
-            if (selectedFile) {
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(selectedFile);
-                img.className = 'media-preview';
-                userDiv.appendChild(img);
+            if (!currentChatId) {
+                currentChatId = Date.now().toString();
+                chats.unshift({ id: currentChatId, title: text || 'محادثة جديدة', history: [] });
             }
 
-            chatBox.appendChild(userDiv);
-            input.value = '';
-            document.getElementById('attachment-preview').style.display = 'none';
-            chatBox.scrollTop = chatBox.scrollHeight;
+            const currentChat = chats.find(c => c.id === currentChatId);
+            if (currentChat.history.length === 0 && text) {
+                currentChat.title = text.substring(0, 25);
+            }
 
-            // 2. إنشاء فقاعة انتظار الذكاء الاصطناعي
-            const aiDiv = document.createElement('div');
-            aiDiv.className = 'message ai-message';
-            aiDiv.innerText = 'جاري التفكير...';
-            chatBox.appendChild(aiDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            const currentImages = [...selectedFiles];
+
+            currentChat.history.push({ role: 'user', text: text, images: currentImages });
+            currentChat.history.push({ role: 'ai', text: 'جاري التفكير...' });
+
+            saveChats();
+            renderSidebar();
+            renderFullChat(currentChat);
+
+            input.value = '';
+            selectedFiles = [];
+            renderPreviewThumbs();
 
             try {
-                // 3. إرسال الطلب للسيرفر /api/chat
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: messageText })
-                });
-
-                const data = await response.json();
-                
-                // 4. استبدال نص الانتظار بفقاعة الإجابة القادمة من الذكاء الاصطناعي
-                aiDiv.innerText = data.reply || data.error || 'تم استلام الرد بنجاح.';
-            } catch (err) {
-                aiDiv.innerText = 'عذراً، تعذر الاتصال بالسيرفر. يرجى إعادة المحاولة.';
-            }
-
-            selectedFile = null;
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function newChat() {
-            document.getElementById('chat-box').innerHTML = '<div class="message ai-message">محادثة جديدة! كيف يمكنني مساعدتك؟</div>';
-            toggleSidebar();
-        }
-    </script>
-</body>
-</html>
+                const respo
