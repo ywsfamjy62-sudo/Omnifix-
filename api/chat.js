@@ -16,28 +16,51 @@ export default async function handler(req, res) {
     const apiKey = process.env.OPENROUTER_API_KEY;
 
     if (!apiKey) {
-      return res.status(200).json({ reply: 'تنبيه: يُرجى إضافة مفتاح OPENROUTER_API_KEY في إعدادات Vercel.' });
+      return res.status(200).json({ reply: 'تنبيه: يُرجى إدخال مفتاح OPENROUTER_API_KEY في إعدادات Vercel.' });
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'mistralai/mistral-7b-instruct:free',
-        messages: [{ role: 'user', content: message || 'مرحباً' }]
-      })
-    });
+    // نماذج ذكاء اصطناعي مجانية وسريعة
+    const freeModels = [
+      'meta-llama/llama-3.1-8b-instruct:free',
+      'mistralai/mistral-7b-instruct:free',
+      'qwen/qwen-2.5-7b-instruct:free'
+    ];
 
-    const data = await response.json();
-    if (response.ok && data.choices && data.choices[0]?.message?.content) {
-      return res.status(200).json({ reply: data.choices[0].message.content });
+    let replyText = null;
+
+    for (const modelName of freeModels) {
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages: [
+              { role: 'system', content: 'أنت مساعد ذكي يتحدث اللغة العربية بأسلوب واضح ومباشر.' },
+              { role: 'user', content: message || 'مرحباً' }
+            ]
+          })
+        });
+
+        const data = await response.json();
+        if (response.ok && data.choices && data.choices[0]?.message?.content) {
+          replyText = data.choices[0].message.content;
+          break;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+
+    if (replyText) {
+      return res.status(200).json({ reply: replyText });
     } else {
-      return res.status(200).json({ reply: 'وعليكم السلام ورحمة الله وبركاته! كيف يمكنني مساعدتك اليوم؟' });
+      return res.status(200).json({ reply: 'أهلاً بك! استلمت رسالتك لكن السيرفر ينشغل حالياً، حاول مجدداً.' });
     }
   } catch (error) {
-    return res.status(200).json({ reply: 'أهلاً بك! تم استلام رسالتك بنجاح.' });
+    return res.status(200).json({ reply: 'حدث خطأ غير متوقع في معالجة طلبك.' });
   }
 }
