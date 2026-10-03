@@ -1,188 +1,376 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OmniFix AI</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    body {
-      background-color: #0d1117;
-      color: #ffffff;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-    header {
-      background-color: #161b22;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #30363d;
-    }
-    .logo {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #58a6ff;
-    }
-    .badge {
-      background-color: #21262d;
-      padding: 5px 12px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      border: 1px solid #30363d;
-    }
-    #chat-container {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    .message {
-      max-width: 80%;
-      padding: 12px 16px;
-      border-radius: 12px;
-      line-height: 1.5;
-      word-wrap: break-word;
-    }
-    .user-message {
-      background-color: #1f6feb;
-      color: #ffffff;
-      align-self: flex-start;
-      border-bottom-right-radius: 2px;
-    }
-    .bot-message {
-      background-color: #21262d;
-      color: #c9d1d9;
-      align-self: flex-end;
-      border-bottom-left-radius: 2px;
-      border: 1px solid #30363d;
-    }
-    .input-container {
-      padding: 15px;
-      background-color: #161b22;
-      border-top: 1px solid #30363d;
-      display: flex;
-      gap: 10px;
-    }
-    input[type="text"] {
-      flex: 1;
-      padding: 12px 15px;
-      border-radius: 8px;
-      border: 1px solid #30363d;
-      background-color: #0d1117;
-      color: #ffffff;
-      font-size: 1rem;
-      outline: none;
-    }
-    input[type="text"]:focus {
-      border-color: #58a6ff;
-    }
-    button {
-      padding: 12px 24px;
-      background-color: #238636;
-      color: #ffffff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button:hover {
-      background-color: #2ea043;
-    }
-    button:disabled {
-      background-color: #343942;
-      cursor: not-allowed;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniFix AI</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --accent: #2563eb;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* القائمة الجانبية للمحادثات */
+        #sidebar {
+            width: 260px;
+            background-color: var(--panel-bg);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: fixed;
+            top: 0;
+            right: -260px;
+            height: 100%;
+            transition: 0.3s ease;
+            z-index: 100;
+        }
+
+        #sidebar.open {
+            right: 0;
+        }
+
+        .btn-new-chat {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .chat-item {
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* المنطقة الرئيسية */
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* الهيدر العلوي */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--panel-bg);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .plan-badge {
+            background: rgba(37, 99, 235, 0.2);
+            border: 1px solid var(--accent);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #60a5fa;
+        }
+
+        /* منطقة الدردشة الفقاعية */
+        #chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .user-message {
+            align-self: flex-start;
+            background: var(--accent);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .ai-message {
+            align-self: flex-end;
+            background: var(--panel-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text);
+            border-bottom-left-radius: 2px;
+        }
+
+        .media-preview {
+            max-width: 200px;
+            border-radius: 8px;
+            margin-top: 8px;
+            display: block;
+        }
+
+        /* الشريط السفلي للإدخال */
+        .input-area {
+            padding: 15px;
+            background: var(--panel-bg);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 5px 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 10px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .file-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 22px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .btn-send {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* نافذة الباقات */
+        #plan-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .modal-body {
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .plan-card {
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-ad {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
-  <header>
-    <div class="logo">OmniFix AI</div>
-    <div class="badge">الباقة العادية</div>
-  </header>
+    <!-- القائمة الجانبية للمحادثات -->
+    <div id="sidebar">
+        <button class="btn-new-chat" onclick="newChat()">+ محادثة جديدة</button>
+        <div class="chat-list" id="chat-list"></div>
+    </div>
 
-  <div id="chat-container"></div>
+    <div id="main-content">
+        <header>
+            <div class="plan-badge" onclick="openPlans()">
+                <div id="current-plan-name">الباقة العادية</div>
+                <small style="color: #aaa;">انقر للترقية</small>
+            </div>
+            <h2>OmniFix AI</h2>
+            <button class="file-btn" onclick="toggleSidebar()">☰</button>
+        </header>
 
-  <div class="input-container">
-    <input type="text" id="user-input" placeholder="اكتب رسالتك هنا..." onkeypress="handleKeyPress(event)">
-    <button id="send-btn" onclick="sendMessage()">إرسال</button>
-  </div>
+        <div id="chat-box">
+            <div class="message ai-message">أهلاً بك! أنا مساعد OmniFix AI، كيف يمكنني مساعدتك اليوم؟</div>
+        </div>
 
-  <script>
-    async function sendMessage() {
-      const inputElement = document.getElementById('user-input');
-      const sendBtn = document.getElementById('send-btn');
-      const message = inputElement.value.trim();
+        <div id="attachment-preview" style="padding: 0 15px; display: none;"></div>
 
-      if (!message) return;
+        <div class="input-area">
+            <input type="file" id="media-input" accept="image/*,video/*" style="display:none" onchange="handleFileSelect(event)">
+            <button class="file-btn" onclick="document.getElementById('media-input').click()">+</button>
+            <div class="input-wrapper">
+                <input type="text" id="user-input" placeholder="اكتب رسالتك هنا..." onkeypress="if(event.key==='Enter') sendMessage()">
+            </div>
+            <button class="btn-send" id="send-btn" onclick="sendMessage()">إرسال</button>
+        </div>
+    </div>
 
-      // 1. عرض رسالة المستخدم
-      appendMessage(message, 'user-message');
-      inputElement.value = '';
-      inputElement.disabled = true;
-      sendBtn.disabled = true;
+    <!-- نافذة الباقات والترقيات -->
+    <div id="plan-modal">
+        <div class="modal-body">
+            <h3>قائمة الباقات والترقيات</h3>
+            <div class="plan-card">
+                <div>
+                    <div>باقة 3: الذكاء السريع</div>
+                    <small>12س | 3 إعلانات</small>
+                </div>
+                <button class="btn-ad" onclick="watchAd('الذكاء السريع', 3)">مشاهدة (0/3)</button>
+            </div>
+            <div class="plan-card">
+                <div>
+                    <div>باقة 5: الذكاء الخارق</div>
+                    <small>12س | 5 إعلانات</small>
+                </div>
+                <button class="btn-ad" onclick="watchAd('الذكاء الخارق', 5)">مشاهدة (0/5)</button>
+            </div>
+            <div class="plan-card">
+                <div>
+                    <div>باقة VIP الاحترافية</div>
+                    <small>12س | 30 إعلان</small>
+                </div>
+                <button class="btn-ad" onclick="watchAd('VIP الاحترافية', 30)">مشاهدة (0/30)</button>
+            </div>
+            <button onclick="closePlans()" style="width:100%; padding:10px; margin-top:10px; background:#ef4444; color:white; border:none; border-radius:6px; cursor:pointer;">إغلاق</button>
+        </div>
+    </div>
 
-      // 2. إظهار حالة "جاري التفكير..."
-      const loadingId = appendMessage('جاري الاتصال بالسيرفر...', 'bot-message');
+    <script>
+        let selectedFile = null;
 
-      try {
-        // 3. إرسال الطلب إلى مسار API الخاص بـ Vercel
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ message: message })
-        });
-
-        const data = await response.json();
-        
-        // 4. تحديث الرسالة بالرد القادم من الـ API
-        const loadingElement = document.getElementById(loadingId);
-        if (loadingElement) {
-          loadingElement.textContent = data.reply || data.error || 'تم استلام الرد بنجاح.';
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
         }
-      } catch (error) {
-        const loadingElement = document.getElementById(loadingId);
-        if (loadingElement) {
-          loadingElement.textContent = 'حدث خطأ في الاتصال بالسيرفر. يرجى المحاولة لاحقاً.';
+
+        function openPlans() { document.getElementById('plan-modal').style.display = 'flex'; }
+        function closePlans() { document.getElementById('plan-modal').style.display = 'none'; }
+
+        function watchAd(planName, required) {
+            alert(`سيتم تشغيل الإعلانات الخاصة بـ ${planName}`);
         }
-      } finally {
-        inputElement.disabled = false;
-        sendBtn.disabled = false;
-        inputElement.focus();
-      }
-    }
 
-    function appendMessage(text, className) {
-      const chatContainer = document.getElementById('chat-container');
-      const messageDiv = document.createElement('div');
-      const messageId = 'msg-' + Date.now();
-      messageDiv.id = messageId;
-      messageDiv.className = `message ${className}`;
-      messageDiv.textContent = text;
-      chatContainer.appendChild(messageDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-      return messageId;
-    }
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const preview = document.getElementById('attachment-preview');
+                preview.style.display = 'block';
+                preview.innerHTML = `<small style="color:#60a5fa">تم إرفاق: ${file.name}</small>`;
+            }
+        }
 
-    function handleKeyPress(event) {
-      if (event.key === 'Enter') {
-        sendMessage();
-      }
-    }
-  </script>
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const chatBox = document.getElementById('chat-box');
+            const messageText = input.value.trim();
+
+            if (!messageText && !selectedFile) return;
+
+            // 1. عرض فقاعة رسالة المستخدم
+            const userDiv = document.createElement('div');
+            userDiv.className = 'message user-message';
+            userDiv.innerText = messageText;
+
+            if (selectedFile) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(selectedFile);
+                img.className = 'media-preview';
+                userDiv.appendChild(img);
+            }
+
+            chatBox.appendChild(userDiv);
+            input.value = '';
+            document.getElementById('attachment-preview').style.display = 'none';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // 2. إنشاء فقاعة انتظار الذكاء الاصطناعي
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'message ai-message';
+            aiDiv.innerText = 'جاري التفكير...';
+            chatBox.appendChild(aiDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                // 3. إرسال الطلب للسيرفر /api/chat
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: messageText })
+                });
+
+                const data = await response.json();
+                
+                // 4. استبدال نص الانتظار بفقاعة الإجابة القادمة من الذكاء الاصطناعي
+                aiDiv.innerText = data.reply || data.error || 'تم استلام الرد بنجاح.';
+            } catch (err) {
+                aiDiv.innerText = 'عذراً، تعذر الاتصال بالسيرفر. يرجى إعادة المحاولة.';
+            }
+
+            selectedFile = null;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function newChat() {
+            document.getElementById('chat-box').innerHTML = '<div class="message ai-message">محادثة جديدة! كيف يمكنني مساعدتك؟</div>';
+            toggleSidebar();
+        }
+    </script>
 </body>
 </html>
