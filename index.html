@@ -431,7 +431,7 @@
         <header>
             <div class="plan-badge" onclick="openPlans()">
                 <div class="title" id="active-plan-title">الباقة العادية</div>
-                <div class="timer" id="plan-timer-text">(11:59:59) مفعلة</div>
+                <div class="timer" id="plan-timer-text">(غير مفعلة)</div>
             </div>
             <h1>OmniFix AI</h1>
             <button class="menu-btn" onclick="toggleSidebar()">☰</button>
@@ -467,10 +467,9 @@
     </div>
 
     <script>
-        let chats = JSON.parse(localStorage.getItem('omnifix_chats') || '[]');
-        let adCounts = JSON.parse(localStorage.getItem('omnifix_ad_counts') || '{}');
-        let activePlanInfo = JSON.parse(localStorage.getItem('omnifix_active_plan') || 'null');
-        
+        let chats = [];
+        let adCounts = {};
+        let activePlanInfo = null;
         let currentChatId = null;
         let selectedFiles = [];
         let timerInterval = null;
@@ -484,17 +483,32 @@
             "Omni26 Max", "Omni27 Max", "Omni28 Ultra", "باقة الذكاء الخارق", "باقة VIP الاحترافية"
         ];
 
+        // حماية عند تحميل الصفحة لتفادي توقف الكود
         window.onload = function() {
+            try {
+                chats = JSON.parse(localStorage.getItem('omnifix_chats')) || [];
+            } catch(e) { chats = []; }
+
+            try {
+                adCounts = JSON.parse(localStorage.getItem('omnifix_ad_counts')) || {};
+            } catch(e) { adCounts = {}; }
+
+            try {
+                activePlanInfo = JSON.parse(localStorage.getItem('omnifix_active_plan')) || null;
+            } catch(e) { activePlanInfo = null; }
+
             renderPlansList();
             renderSidebar();
             initActivePlan();
+
             if (chats.length > 0) {
                 loadChat(chats[0].id);
             }
         };
 
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.toggle('open');
         }
 
         function openPlans() {
@@ -507,6 +521,7 @@
 
         function renderPlansList() {
             const container = document.getElementById('plans-container');
+            if (!container) return;
             container.innerHTML = '';
             for (let i = 1; i <= 30; i++) {
                 const name = `باقة ${i}: ${planNames[i-1]}`;
@@ -535,10 +550,9 @@
             localStorage.setItem('omnifix_ad_counts', JSON.stringify(adCounts));
 
             if (count >= planIndex) {
-                adCounts[planIndex] = 0; // إعادة التعيين
+                adCounts[planIndex] = 0;
                 localStorage.setItem('omnifix_ad_counts', JSON.stringify(adCounts));
                 
-                // تفعيل الباقة لمدة 12 ساعة
                 const expireTime = Date.now() + (12 * 60 * 60 * 1000);
                 activePlanInfo = { name: planTitle, expireTime: expireTime };
                 localStorage.setItem('omnifix_active_plan', JSON.stringify(activePlanInfo));
@@ -555,7 +569,7 @@
         function initActivePlan() {
             if (timerInterval) clearInterval(timerInterval);
 
-            if (activePlanInfo && activePlanInfo.expireTime > Date.now()) {
+            if (activePlanInfo && activePlanInfo.expireTime && activePlanInfo.expireTime > Date.now()) {
                 document.getElementById('active-plan-title').innerText = activePlanInfo.name;
                 updateTimerDisplay();
                 timerInterval = setInterval(updateTimerDisplay, 1000);
@@ -566,6 +580,7 @@
         }
 
         function updateTimerDisplay() {
+            if (!activePlanInfo || !activePlanInfo.expireTime) return;
             const now = Date.now();
             const diff = activePlanInfo.expireTime - now;
 
@@ -638,17 +653,4 @@
             document.getElementById('sidebar').classList.remove('open');
         }
 
-        function deleteChat(id, event) {
-            event.stopPropagation();
-            chats = chats.filter(c => c.id !== id);
-            saveChats();
-            if (currentChatId === id) {
-                currentChatId = chats.length > 0 ? chats[0].id : null;
-                if (currentChatId) loadChat(currentChatId);
-                else showWelcome();
-            }
-            renderSidebar();
-        }
-
-        function saveChats() {
-            localStorage.setItem('o
+        function deleteChat(id, event) 
