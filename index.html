@@ -80,12 +80,11 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            border: 1px solid transparent;
         }
 
         .chat-item.active {
-            border-color: var(--accent);
-            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid var(--accent);
+            background: rgba(37, 99, 235, 0.15);
         }
 
         /* الواجهة الرئيسية */
@@ -95,7 +94,6 @@
             flex-direction: column;
             height: 100%;
             width: 100%;
-            position: relative;
         }
 
         header {
@@ -125,7 +123,6 @@
         .plan-badge .timer {
             color: #a7f3d0;
             font-size: 11px;
-            margin-top: 2px;
         }
 
         header h1 {
@@ -148,7 +145,7 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
         }
 
         .welcome-card {
@@ -173,44 +170,42 @@
             font-size: 14px;
         }
 
-        /* فقاعات الحوار والردود */
-        .user-question-bubble {
+        /* الفقاعات والردود */
+        .user-bubble {
             align-self: flex-start;
             background: rgba(37, 99, 235, 0.2);
             border: 1px solid var(--accent);
-            border-radius: 14px;
-            padding: 12px 18px;
+            border-radius: 12px;
+            padding: 12px 16px;
             max-width: 85%;
-            color: #ffffff;
             font-size: 15px;
         }
 
-        .user-question-images {
+        .user-images {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
-        .user-question-images img {
-            width: 70px;
-            height: 70px;
+        .user-images img {
+            width: 60px;
+            height: 60px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 6px;
         }
 
-        .ai-full-response {
+        .ai-bubble {
             width: 100%;
             color: #f3f4f6;
-            font-size: 16px;
-            line-height: 1.8;
+            font-size: 15px;
+            line-height: 1.7;
             white-space: pre-wrap;
-            word-break: break-word;
-            padding: 10px 5px;
+            padding: 10px 0;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* شريط الكتابة والصور المرفقة */
+        /* أشرطة الإدخال والأسفل */
         .input-container {
             padding: 10px 16px 16px 16px;
             background: var(--panel-bg);
@@ -293,14 +288,14 @@
             background: var(--accent);
             color: white;
             border: none;
-            padding: 12px 22px;
+            padding: 12px 20px;
             border-radius: 10px;
             font-weight: bold;
             cursor: pointer;
             font-size: 15px;
         }
 
-        /* نافذة الباقات 30 */
+        /* نافذة الباقات */
         #plan-modal {
             display: none;
             position: fixed;
@@ -387,18 +382,18 @@
 <body>
 
     <div id="sidebar">
-        <button class="btn-new-chat" id="new-chat-btn">+ محادثة جديدة</button>
+        <button class="btn-new-chat" onclick="createNewChat()">+ محادثة جديدة</button>
         <div class="chat-list" id="chat-list"></div>
     </div>
 
     <div id="main-content">
         <header>
-            <div class="plan-badge" id="open-plans-btn">
+            <div class="plan-badge" onclick="openPlans()">
                 <div class="title" id="active-plan-title">الباقة العادية</div>
                 <div class="timer">(11:59:59) مفعلة</div>
             </div>
             <h1>OmniFix AI</h1>
-            <button class="menu-btn" id="menu-btn">☰</button>
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
         </header>
 
         <div id="display-area">
@@ -412,12 +407,12 @@
             <div class="media-preview-bar" id="media-preview-bar"></div>
 
             <div class="input-box">
-                <input type="file" id="media-file" accept="image/*" multiple style="display:none">
-                <button class="add-btn" id="add-file-btn">+</button>
+                <input type="file" id="media-file" accept="image/*" multiple style="display:none" onchange="handleFilesSelected(event)">
+                <button class="add-btn" onclick="triggerFileSelect()">+</button>
                 <div class="input-wrapper">
-                    <input type="text" id="user-input" placeholder="اكتب رسالتك هنا...">
+                    <input type="text" id="user-input" placeholder="اكتب رسالتك هنا..." onkeypress="handleKeyPress(event)">
                 </div>
-                <button class="send-btn" id="send-btn">إرسال</button>
+                <button class="send-btn" onclick="sendRequest()">إرسال</button>
             </div>
         </div>
     </div>
@@ -426,7 +421,7 @@
         <div class="modal-content">
             <div class="modal-header">قائمة الباقات والترقيات</div>
             <div class="plans-scroll" id="plans-container"></div>
-            <button class="close-btn" id="close-plans-btn">إغلاق</button>
+            <button class="close-btn" onclick="closePlans()">إغلاق</button>
         </div>
     </div>
 
@@ -444,26 +439,28 @@
             "Omni26 Max", "Omni27 Max", "Omni28 Ultra", "باقة الذكاء الخارق", "باقة VIP الاحترافية"
         ];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            renderPlans();
-
-            document.getElementById('menu-btn').onclick = toggleSidebar;
-            document.getElementById('new-chat-btn').onclick = createNewChat;
-            document.getElementById('open-plans-btn').onclick = openPlans;
-            document.getElementById('close-plans-btn').onclick = closePlans;
-            document.getElementById('add-file-btn').onclick = () => document.getElementById('media-file').click();
-            document.getElementById('media-file').onchange = onFilesSelected;
-            document.getElementById('send-btn').onclick = sendRequest;
-            document.getElementById('user-input').onkeypress = (e) => { if (e.key === 'Enter') sendRequest(); };
-
+        window.onload = function() {
+            renderPlansList();
+            renderSidebar();
             if (chats.length > 0) {
                 loadChat(chats[0].id);
-            } else {
-                renderSidebar();
             }
-        });
+        };
 
-        function renderPlans() {
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function openPlans() {
+            document.getElementById('plan-modal').style.display = 'flex';
+        }
+
+        function closePlans() {
+            document.getElementById('plan-modal').style.display = 'none';
+        }
+
+        function renderPlansList() {
             const container = document.getElementById('plans-container');
             container.innerHTML = '';
             for (let i = 1; i <= 30; i++) {
@@ -478,32 +475,33 @@
                             <span>📺 ${i} إعلان</span>
                         </div>
                     </div>
-                    <button class="ad-btn" onclick="watchAd('${name}', ${i})">مشاهدة (0/${i})</button>
+                    <button class="ad-btn" onclick="activatePlan('${name}')">مشاهدة (0/${i})</button>
                 `;
                 container.appendChild(card);
             }
         }
 
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-        function openPlans() { document.getElementById('plan-modal').style.display = 'flex'; }
-        function closePlans() { document.getElementById('plan-modal').style.display = 'none'; }
-
-        function watchAd(planTitle, count) {
-            alert(`سيتم فتح الإعلان (${count}). عند إكماله ستتفعل ${planTitle} لمدة 12 ساعة.`);
-            document.getElementById('active-plan-title').innerText = planTitle;
+        function activatePlan(name) {
+            alert(`تم تفعيل ${name} بنجاح لمدة 12 ساعة.`);
+            document.getElementById('active-plan-title').innerText = name;
             closePlans();
         }
 
-        function onFilesSelected(e) {
-            const files = Array.from(e.target.files);
+        function triggerFileSelect() {
+            document.getElementById('media-file').click();
+        }
+
+        function handleFilesSelected(event) {
+            const files = Array.from(event.target.files);
             files.forEach(file => {
                 const reader = new FileReader();
-                reader.onload = (event) => {
-                    selectedFiles.push(event.target.result);
+                reader.onload = function(e) {
+                    selectedFiles.push(e.target.result);
                     renderPreviewThumbs();
                 };
                 reader.readAsDataURL(file);
             });
+            event.target.value = '';
         }
 
         function renderPreviewThumbs() {
@@ -536,10 +534,12 @@
             saveChats();
             renderSidebar();
             showWelcome();
-            if (document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
+            document.getElementById('sidebar').classList.remove('open');
         }
 
-        function saveChats() { localStorage.setItem('omnifix_chats', JSON.stringify(chats)); }
+        function saveChats() {
+            localStorage.setItem('omnifix_chats', JSON.stringify(chats));
+        }
 
         function renderSidebar() {
             const list = document.getElementById('chat-list');
@@ -548,7 +548,7 @@
                 const item = document.createElement('div');
                 item.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
                 item.innerText = chat.title;
-                item.onclick = () => loadChat(chat.id);
+                item.onclick = function() { loadChat(chat.id); };
                 list.appendChild(item);
             });
         }
@@ -562,7 +562,7 @@
             } else {
                 renderFullChat(chat);
             }
-            if (document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
+            document.getElementById('sidebar').classList.remove('open');
         }
 
         function showWelcome() {
@@ -580,33 +580,40 @@
 
             chat.history.forEach(item => {
                 if (item.role === 'user') {
-                    const qBubble = document.createElement('div');
-                    qBubble.className = 'user-question-bubble';
-                    qBubble.innerText = item.text;
+                    const bubble = document.createElement('div');
+                    bubble.className = 'user-bubble';
+                    bubble.innerText = item.text;
 
                     if (item.images && item.images.length > 0) {
                         const imgBox = document.createElement('div');
-                        imgBox.className = 'user-question-images';
+                        imgBox.className = 'user-images';
                         item.images.forEach(imgSrc => {
                             imgBox.innerHTML += `<img src="${imgSrc}">`;
                         });
-                        qBubble.appendChild(imgBox);
+                        bubble.appendChild(imgBox);
                     }
-                    area.appendChild(qBubble);
+                    area.appendChild(bubble);
                 } else {
-                    const aiResp = document.createElement('div');
-                    aiResp.className = 'ai-full-response';
-                    aiResp.innerText = item.text;
-                    area.appendChild(aiResp);
+                    const aiBubble = document.createElement('div');
+                    aiBubble.className = 'ai-bubble';
+                    aiBubble.innerText = item.text;
+                    area.appendChild(aiBubble);
                 }
             });
 
             area.scrollTop = area.scrollHeight;
         }
 
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendRequest();
+            }
+        }
+
         async function sendRequest() {
             const input = document.getElementById('user-input');
             const text = input.value.trim();
+
             if (!text && selectedFiles.length === 0) return;
 
             if (!currentChatId) {
@@ -638,6 +645,17 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt: text, images: currentImages })
                 });
+
                 const data = await response.json();
-                
-                currentChat.history[currentChat.history.length - 1].text = dat
+                currentChat.history[currentChat.history.length - 1].text = data.reply || data.text || 'تم استلام الرسالة.';
+            } catch (err) {
+                currentChat.history[currentChat.history.length - 1].text = 'حدث خطأ في الاتصال بالسيرفر، يرجى المحاولة لاحقاً.';
+            }
+
+            saveChats();
+            renderFullChat(currentChat);
+        }
+    </script>
+</body>
+</html>
+
