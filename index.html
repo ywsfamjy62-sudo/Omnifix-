@@ -188,7 +188,7 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            padding-bottom: 90px; /* مسافة لحماية عدم غطاء الشريط للرسائل */
+            padding-bottom: 120px; /* مسافة حماية سفلية ممتدة بعد رفع الشريط */
         }
 
         .welcome-card {
@@ -248,19 +248,21 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* شريط الإدخال الثابت أسفل الشاشة */
+        /* شريط الإدخال المرفوع عن الأسفل */
         .input-container {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 20px; /* رفع الشريط بمقدار 20 بكسل */
+            left: 12px;
+            right: 12px;
             background: var(--panel-bg);
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
             padding: 10px 12px;
             display: flex;
             flex-direction: column;
             gap: 8px;
             z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
 
         .media-preview-bar {
@@ -641,163 +643,4 @@
                     box.innerHTML = `<img src="${item.src}"><button class="remove-btn" onclick="removeThumb(${idx})">×</button>`;
                 }
                 bar.appendChild(box);
-            });
-        }
-
-        function removeThumb(idx) {
-            selectedFiles.splice(idx, 1);
-            renderPreviewThumbs();
-        }
-
-        function createNewChat() {
-            currentChatId = Date.now().toString();
-            chats.unshift({ id: currentChatId, title: 'محادثة جديدة', history: [] });
-            saveChats();
-            renderSidebar();
-            showWelcome();
-            document.getElementById('sidebar').classList.remove('open');
-        }
-
-        function deleteChat(id, event) {
-            if(event) event.stopPropagation();
-            chats = chats.filter(c => c.id !== id);
-            saveChats();
-            if (currentChatId === id) {
-                currentChatId = chats.length > 0 ? chats[0].id : null;
-                if (currentChatId) loadChat(currentChatId);
-                else showWelcome();
-            }
-            renderSidebar();
-        }
-
-        function saveChats() {
-            localStorage.setItem('omnifix_chats', JSON.stringify(chats));
-        }
-
-        function renderSidebar() {
-            const list = document.getElementById('chat-list');
-            if (!list) return;
-            list.innerHTML = '';
-            chats.forEach(chat => {
-                const item = document.createElement('div');
-                item.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
-                item.onclick = function() { loadChat(chat.id); };
-                item.innerHTML = `
-                    <span class="chat-title">${chat.title}</span>
-                    <button class="delete-chat-btn" onclick="deleteChat('${chat.id}', event)">🗑️</button>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function loadChat(id) {
-            currentChatId = id;
-            renderSidebar();
-            const chat = chats.find(c => c.id === id);
-            if (!chat || chat.history.length === 0) {
-                showWelcome();
-            } else {
-                renderFullChat(chat);
-            }
-            document.getElementById('sidebar').classList.remove('open');
-        }
-
-        function showWelcome() {
-            document.getElementById('display-area').innerHTML = `
-                <div class="welcome-card">
-                    <h2>OmniFix AI</h2>
-                    <p>المساعد الذكي المتكامل للدردشة والنصوص والوسائط.</p>
-                </div>
-            `;
-        }
-
-        function renderFullChat(chat) {
-            const area = document.getElementById('display-area');
-            area.innerHTML = '';
-
-            chat.history.forEach(item => {
-                if (item.role === 'user') {
-                    const bubble = document.createElement('div');
-                    bubble.className = 'user-bubble';
-                    bubble.innerText = item.text;
-
-                    if (item.media && item.media.length > 0) {
-                        const mediaBox = document.createElement('div');
-                        mediaBox.className = 'media-grid';
-                        item.media.forEach(m => {
-                            if (m.type === 'video') {
-                                mediaBox.innerHTML += `<video src="${m.src}" controls></video>`;
-                            } else {
-                                mediaBox.innerHTML += `<img src="${m.src}">`;
-                            }
-                        });
-                        bubble.appendChild(mediaBox);
-                    }
-                    area.appendChild(bubble);
-                } else {
-                    const aiBubble = document.createElement('div');
-                    aiBubble.className = 'ai-bubble';
-                    aiBubble.innerText = item.text;
-                    area.appendChild(aiBubble);
-                }
-            });
-
-            area.scrollTop = area.scrollHeight;
-        }
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendRequest();
-            }
-        }
-
-        async function sendRequest() {
-            const input = document.getElementById('user-input');
-            const text = input.value.trim();
-
-            if (!text && selectedFiles.length === 0) return;
-
-            if (!currentChatId) {
-                currentChatId = Date.now().toString();
-                chats.unshift({ id: currentChatId, title: text || 'محادثة جديدة', history: [] });
-            }
-
-            const currentChat = chats.find(c => c.id === currentChatId);
-            if (currentChat && currentChat.history.length === 0 && text) {
-                currentChat.title = text.substring(0, 25);
-            }
-
-            const currentMedia = [...selectedFiles];
-            const imagePayload = currentMedia.filter(m => m.type === 'image').map(m => m.src);
-
-            currentChat.history.push({ role: 'user', text: text, media: currentMedia });
-            currentChat.history.push({ role: 'ai', text: 'جاري التفكير...' });
-
-            saveChats();
-            renderSidebar();
-            renderFullChat(currentChat);
-
-            input.value = '';
-            selectedFiles = [];
-            renderPreviewThumbs();
-
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: text, images: imagePayload })
-                });
-
-                const data = await response.json();
-                currentChat.history[currentChat.history.length - 1].text = data.reply || data.text || 'تم استلام الرسالة.';
-            } catch (err) {
-                currentChat.history[currentChat.history.length - 1].text = 'حدث خطأ في الاتصال بالسيرفر.';
-            }
-
-            saveChats();
-            renderFullChat(currentChat);
-        }
-    </script>
-</body>
-</html>
-
+      
