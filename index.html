@@ -51,6 +51,24 @@
             right: 0;
         }
 
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .close-sidebar-btn {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
         .btn-new-chat {
             background: var(--accent);
             color: white;
@@ -60,6 +78,7 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 15px;
+            width: 100%;
         }
 
         .chat-list {
@@ -71,20 +90,36 @@
         }
 
         .chat-item {
-            padding: 12px;
+            padding: 10px 12px;
             background: rgba(255,255,255,0.04);
             border-radius: 8px;
             cursor: pointer;
             color: var(--text);
             font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .chat-item.active {
             border: 1px solid var(--accent);
             background: rgba(37, 99, 235, 0.15);
+        }
+
+        .chat-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .delete-chat-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 2px 6px;
         }
 
         /* الواجهة الرئيسية */
@@ -123,6 +158,7 @@
         .plan-badge .timer {
             color: #a7f3d0;
             font-size: 11px;
+            font-weight: bold;
         }
 
         header h1 {
@@ -181,16 +217,16 @@
             font-size: 15px;
         }
 
-        .user-images {
+        .media-grid {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
             margin-top: 8px;
         }
 
-        .user-images img {
-            width: 60px;
-            height: 60px;
+        .media-grid img, .media-grid video {
+            width: 80px;
+            height: 80px;
             object-fit: cover;
             border-radius: 6px;
         }
@@ -205,7 +241,7 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* أشرطة الإدخال والأسفل */
+        /* شريط الإدخال والوسائط */
         .input-container {
             padding: 10px 16px 16px 16px;
             background: var(--panel-bg);
@@ -227,7 +263,7 @@
             flex-shrink: 0;
         }
 
-        .media-preview-bar img {
+        .media-preview-bar img, .media-preview-bar video {
             width: 50px;
             height: 50px;
             object-fit: cover;
@@ -364,6 +400,7 @@
             font-weight: bold;
             font-size: 13px;
             cursor: pointer;
+            min-width: 100px;
         }
 
         .close-btn {
@@ -382,6 +419,10 @@
 <body>
 
     <div id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-weight: bold;">المحادثات</span>
+            <button class="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
+        </div>
         <button class="btn-new-chat" onclick="createNewChat()">+ محادثة جديدة</button>
         <div class="chat-list" id="chat-list"></div>
     </div>
@@ -390,7 +431,7 @@
         <header>
             <div class="plan-badge" onclick="openPlans()">
                 <div class="title" id="active-plan-title">الباقة العادية</div>
-                <div class="timer">(11:59:59) مفعلة</div>
+                <div class="timer" id="plan-timer-text">(11:59:59) مفعلة</div>
             </div>
             <h1>OmniFix AI</h1>
             <button class="menu-btn" onclick="toggleSidebar()">☰</button>
@@ -407,7 +448,7 @@
             <div class="media-preview-bar" id="media-preview-bar"></div>
 
             <div class="input-box">
-                <input type="file" id="media-file" accept="image/*" multiple style="display:none" onchange="handleFilesSelected(event)">
+                <input type="file" id="media-file" accept="image/*,video/*" multiple style="display:none" onchange="handleFilesSelected(event)">
                 <button class="add-btn" onclick="triggerFileSelect()">+</button>
                 <div class="input-wrapper">
                     <input type="text" id="user-input" placeholder="اكتب رسالتك هنا..." onkeypress="handleKeyPress(event)">
@@ -427,8 +468,12 @@
 
     <script>
         let chats = JSON.parse(localStorage.getItem('omnifix_chats') || '[]');
+        let adCounts = JSON.parse(localStorage.getItem('omnifix_ad_counts') || '{}');
+        let activePlanInfo = JSON.parse(localStorage.getItem('omnifix_active_plan') || 'null');
+        
         let currentChatId = null;
         let selectedFiles = [];
+        let timerInterval = null;
 
         const planNames = [
             "الأساسية", "الذكاء السريع", "الذكاء المتقدم", "الذكاء الفائق", "المحترف", 
@@ -442,14 +487,14 @@
         window.onload = function() {
             renderPlansList();
             renderSidebar();
+            initActivePlan();
             if (chats.length > 0) {
                 loadChat(chats[0].id);
             }
         };
 
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('open');
+            document.getElementById('sidebar').classList.toggle('open');
         }
 
         function openPlans() {
@@ -465,6 +510,8 @@
             container.innerHTML = '';
             for (let i = 1; i <= 30; i++) {
                 const name = `باقة ${i}: ${planNames[i-1]}`;
+                const currentCount = adCounts[i] || 0;
+                
                 const card = document.createElement('div');
                 card.className = 'plan-card-item';
                 card.innerHTML = `
@@ -475,16 +522,68 @@
                             <span>📺 ${i} إعلان</span>
                         </div>
                     </div>
-                    <button class="ad-btn" onclick="activatePlan('${name}')">مشاهدة (0/${i})</button>
+                    <button class="ad-btn" onclick="watchAd(${i}, '${name}')">مشاهدة (${currentCount}/${i})</button>
                 `;
                 container.appendChild(card);
             }
         }
 
-        function activatePlan(name) {
-            alert(`تم تفعيل ${name} بنجاح لمدة 12 ساعة.`);
-            document.getElementById('active-plan-title').innerText = name;
-            closePlans();
+        function watchAd(planIndex, planTitle) {
+            let count = adCounts[planIndex] || 0;
+            count++;
+            adCounts[planIndex] = count;
+            localStorage.setItem('omnifix_ad_counts', JSON.stringify(adCounts));
+
+            if (count >= planIndex) {
+                adCounts[planIndex] = 0; // إعادة التعيين
+                localStorage.setItem('omnifix_ad_counts', JSON.stringify(adCounts));
+                
+                // تفعيل الباقة لمدة 12 ساعة
+                const expireTime = Date.now() + (12 * 60 * 60 * 1000);
+                activePlanInfo = { name: planTitle, expireTime: expireTime };
+                localStorage.setItem('omnifix_active_plan', JSON.stringify(activePlanInfo));
+                
+                alert(`تم تفعيل ${planTitle} بنجاح لمدة 12 ساعة!`);
+                initActivePlan();
+                closePlans();
+            } else {
+                alert(`تمت مشاهدة إعلان (${count}/${planIndex}). متبقي ${planIndex - count} إعلان لتفعيل الباقة.`);
+            }
+            renderPlansList();
+        }
+
+        function initActivePlan() {
+            if (timerInterval) clearInterval(timerInterval);
+
+            if (activePlanInfo && activePlanInfo.expireTime > Date.now()) {
+                document.getElementById('active-plan-title').innerText = activePlanInfo.name;
+                updateTimerDisplay();
+                timerInterval = setInterval(updateTimerDisplay, 1000);
+            } else {
+                document.getElementById('active-plan-title').innerText = 'الباقة العادية';
+                document.getElementById('plan-timer-text').innerText = '(غير مفعلة)';
+            }
+        }
+
+        function updateTimerDisplay() {
+            const now = Date.now();
+            const diff = activePlanInfo.expireTime - now;
+
+            if (diff <= 0) {
+                clearInterval(timerInterval);
+                activePlanInfo = null;
+                localStorage.removeItem('omnifix_active_plan');
+                document.getElementById('active-plan-title').innerText = 'الباقة العادية';
+                document.getElementById('plan-timer-text').innerText = '(انتهت الباقة)';
+                return;
+            }
+
+            const hrs = Math.floor(diff / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+            const pad = (n) => n < 10 ? '0' + n : n;
+            document.getElementById('plan-timer-text').innerText = `(${pad(hrs)}:${pad(mins)}:${pad(secs)}) مفعلة`;
         }
 
         function triggerFileSelect() {
@@ -495,8 +594,9 @@
             const files = Array.from(event.target.files);
             files.forEach(file => {
                 const reader = new FileReader();
+                const isVideo = file.type.startsWith('video/');
                 reader.onload = function(e) {
-                    selectedFiles.push(e.target.result);
+                    selectedFiles.push({ src: e.target.result, type: isVideo ? 'video' : 'image' });
                     renderPreviewThumbs();
                 };
                 reader.readAsDataURL(file);
@@ -512,13 +612,14 @@
             }
             bar.style.display = 'flex';
             bar.innerHTML = '';
-            selectedFiles.forEach((src, idx) => {
+            selectedFiles.forEach((item, idx) => {
                 const box = document.createElement('div');
                 box.className = 'thumb-box';
-                box.innerHTML = `
-                    <img src="${src}">
-                    <button class="remove-btn" onclick="removeThumb(${idx})">×</button>
-                `;
+                if (item.type === 'video') {
+                    box.innerHTML = `<video src="${item.src}"></video><button class="remove-btn" onclick="removeThumb(${idx})">×</button>`;
+                } else {
+                    box.innerHTML = `<img src="${item.src}"><button class="remove-btn" onclick="removeThumb(${idx})">×</button>`;
+                }
                 bar.appendChild(box);
             });
         }
@@ -537,125 +638,17 @@
             document.getElementById('sidebar').classList.remove('open');
         }
 
+        function deleteChat(id, event) {
+            event.stopPropagation();
+            chats = chats.filter(c => c.id !== id);
+            saveChats();
+            if (currentChatId === id) {
+                currentChatId = chats.length > 0 ? chats[0].id : null;
+                if (currentChatId) loadChat(currentChatId);
+                else showWelcome();
+            }
+            renderSidebar();
+        }
+
         function saveChats() {
-            localStorage.setItem('omnifix_chats', JSON.stringify(chats));
-        }
-
-        function renderSidebar() {
-            const list = document.getElementById('chat-list');
-            list.innerHTML = '';
-            chats.forEach(chat => {
-                const item = document.createElement('div');
-                item.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
-                item.innerText = chat.title;
-                item.onclick = function() { loadChat(chat.id); };
-                list.appendChild(item);
-            });
-        }
-
-        function loadChat(id) {
-            currentChatId = id;
-            renderSidebar();
-            const chat = chats.find(c => c.id === id);
-            if (!chat || chat.history.length === 0) {
-                showWelcome();
-            } else {
-                renderFullChat(chat);
-            }
-            document.getElementById('sidebar').classList.remove('open');
-        }
-
-        function showWelcome() {
-            document.getElementById('display-area').innerHTML = `
-                <div class="welcome-card">
-                    <h2>OmniFix AI</h2>
-                    <p>المساعد الذكي المتكامل للدردشة والنصوص والوسائط.</p>
-                </div>
-            `;
-        }
-
-        function renderFullChat(chat) {
-            const area = document.getElementById('display-area');
-            area.innerHTML = '';
-
-            chat.history.forEach(item => {
-                if (item.role === 'user') {
-                    const bubble = document.createElement('div');
-                    bubble.className = 'user-bubble';
-                    bubble.innerText = item.text;
-
-                    if (item.images && item.images.length > 0) {
-                        const imgBox = document.createElement('div');
-                        imgBox.className = 'user-images';
-                        item.images.forEach(imgSrc => {
-                            imgBox.innerHTML += `<img src="${imgSrc}">`;
-                        });
-                        bubble.appendChild(imgBox);
-                    }
-                    area.appendChild(bubble);
-                } else {
-                    const aiBubble = document.createElement('div');
-                    aiBubble.className = 'ai-bubble';
-                    aiBubble.innerText = item.text;
-                    area.appendChild(aiBubble);
-                }
-            });
-
-            area.scrollTop = area.scrollHeight;
-        }
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendRequest();
-            }
-        }
-
-        async function sendRequest() {
-            const input = document.getElementById('user-input');
-            const text = input.value.trim();
-
-            if (!text && selectedFiles.length === 0) return;
-
-            if (!currentChatId) {
-                currentChatId = Date.now().toString();
-                chats.unshift({ id: currentChatId, title: text || 'محادثة جديدة', history: [] });
-            }
-
-            const currentChat = chats.find(c => c.id === currentChatId);
-            if (currentChat.history.length === 0 && text) {
-                currentChat.title = text.substring(0, 25);
-            }
-
-            const currentImages = [...selectedFiles];
-
-            currentChat.history.push({ role: 'user', text: text, images: currentImages });
-            currentChat.history.push({ role: 'ai', text: 'جاري التفكير...' });
-
-            saveChats();
-            renderSidebar();
-            renderFullChat(currentChat);
-
-            input.value = '';
-            selectedFiles = [];
-            renderPreviewThumbs();
-
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: text, images: currentImages })
-                });
-
-                const data = await response.json();
-                currentChat.history[currentChat.history.length - 1].text = data.reply || data.text || 'تم استلام الرسالة.';
-            } catch (err) {
-                currentChat.history[currentChat.history.length - 1].text = 'حدث خطأ في الاتصال بالسيرفر، يرجى المحاولة لاحقاً.';
-            }
-
-            saveChats();
-            renderFullChat(currentChat);
-        }
-    </script>
-</body>
-</html>
-
+            localStorage.setItem('o
