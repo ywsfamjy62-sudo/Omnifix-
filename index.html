@@ -21,19 +21,17 @@
             padding: 0;
             font-family: system-ui, -apple-system, sans-serif;
             -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
         }
 
         body {
             background-color: var(--bg-dark);
             color: var(--text);
-            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* الشريط العلوي */
         header {
             height: 60px;
             background: var(--panel-bg);
@@ -42,7 +40,7 @@
             align-items: center;
             padding: 0 14px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            z-index: 10;
+            flex-shrink: 0;
         }
 
         .plan-badge {
@@ -55,34 +53,13 @@
             min-width: 110px;
         }
 
-        .plan-badge .title {
-            color: #34d399;
-            font-size: 11px;
-            font-weight: bold;
-        }
+        .plan-badge .title { color: #34d399; font-size: 11px; font-weight: bold; }
+        .plan-badge .subtitle { color: #a7f3d0; font-size: 9px; direction: ltr; }
 
-        .plan-badge .subtitle {
-            color: #a7f3d0;
-            font-size: 9px;
-            direction: ltr;
-        }
+        .app-title { font-size: 18px; font-weight: bold; color: #3b82f6; }
+        .menu-icon { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
 
-        .app-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #3b82f6;
-        }
-
-        .menu-icon {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 4px;
-        }
-
-        /* منطقة العرض */
+        /* منطقة المحادثة التفاعلية مع دعم التمرير الممتاز */
         #display-area {
             flex: 1;
             padding: 15px;
@@ -90,6 +67,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            scroll-behavior: smooth;
         }
 
         .welcome-card {
@@ -103,79 +81,43 @@
             max-width: 360px;
         }
 
-        .welcome-card h2 {
-            font-size: 22px;
-            color: #3b82f6;
-            margin-bottom: 8px;
-        }
+        .welcome-card h2 { font-size: 22px; color: #3b82f6; margin-bottom: 8px; }
+        .welcome-card p { font-size: 13px; color: var(--muted); }
 
-        .welcome-card p {
-            font-size: 13px;
-            color: var(--muted);
-        }
-
-        .message-bubble {
-            background: rgba(37,99,235,0.2);
+        .msg-user {
+            background: rgba(37, 99, 235, 0.25);
             border: 1px solid var(--accent);
             padding: 10px 14px;
-            border-radius: 10px;
+            border-radius: 12px 12px 2px 12px;
             align-self: flex-start;
             max-width: 85%;
             font-size: 14px;
-            line-height: 1.4;
+            line-height: 1.5;
+            word-break: break-word;
         }
 
-        /* مرفقات الوسائط قبل الإرسال */
-        .media-preview-bar {
-            display: none;
-            gap: 8px;
-            overflow-x: auto;
-            padding: 6px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 8px;
-            margin-bottom: 6px;
+        .msg-ai {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 14px;
+            border-radius: 12px 12px 12px 2px;
+            align-self: flex-end;
+            max-width: 85%;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #e5e7eb;
+            word-break: break-word;
         }
 
-        .thumb-box {
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .thumb-box img, .thumb-box video {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid var(--accent);
-        }
-
-        .thumb-box .remove-btn {
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 11px;
-            cursor: pointer;
-        }
-
-        /* شريط الإدخال المرفوع */
+        /* شريط الإدخال المرفوع والتجاوبي */
         .input-container {
             background: var(--panel-bg);
             border-top: 1px solid rgba(255,255,255,0.1);
-            padding: 12px 12px 24px 12px; /* رفع الشريط عن أسفل الشاشة */
+            padding: 10px 12px 20px 12px;
             flex-shrink: 0;
         }
 
-        .input-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .input-box { display: flex; align-items: center; gap: 8px; }
 
         .input-wrapper {
             flex: 1;
@@ -197,16 +139,7 @@
             font-size: 14px;
         }
 
-        .add-btn {
-            background: none;
-            border: none;
-            color: #3b82f6;
-            font-size: 26px;
-            cursor: pointer;
-            padding: 0 4px;
-            line-height: 1;
-        }
-
+        .add-btn { background: none; border: none; color: #3b82f6; font-size: 24px; cursor: pointer; }
         .send-btn {
             background: var(--accent);
             color: white;
@@ -216,105 +149,23 @@
             font-weight: bold;
             cursor: pointer;
             font-size: 14px;
-            white-space: nowrap;
         }
 
-        /* القائمة الجانبية */
         #sidebar {
             position: fixed;
-            top: 0;
-            right: -280px;
-            width: 280px;
-            height: 100%;
+            top: 0; right: -280px;
+            width: 280px; height: 100%;
             background: var(--panel-bg);
             z-index: 9999;
             transition: 0.3s ease;
             padding: 20px;
             box-shadow: -4px 0 15px rgba(0,0,0,0.5);
         }
-
-        #sidebar.open {
-            right: 0;
-        }
-
-        /* نافذة الباقات (Modal) */
-        #modal-plans {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-        }
-
-        .modal-content {
-            background: var(--panel-bg);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 400px;
-            max-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid rgba(255,255,255,0.15);
-            padding: 16px;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 8px;
-        }
-
-        .plans-list {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding-left: 4px;
-        }
-
-        .plan-item {
-            background: var(--card-bg);
-            border-radius: 10px;
-            padding: 10px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .plan-info h4 {
-            font-size: 13px;
-            color: #f3f4f6;
-        }
-
-        .plan-info p {
-            font-size: 11px;
-            color: var(--muted);
-            margin-top: 2px;
-        }
-
-        .ad-btn {
-            background: var(--accent-green);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        #sidebar.open { right: 0; }
     </style>
 </head>
 <body>
 
-    <!-- القائمة الجانبية -->
     <div id="sidebar">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h3>المحادثات</h3>
@@ -323,213 +174,100 @@
         <button onclick="newChat()" style="width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:8px; font-weight:bold;">+ محادثة جديدة</button>
     </div>
 
-    <!-- الشريط العلوي -->
     <header>
-        <div class="plan-badge" onclick="openPlansModal()">
+        <div class="plan-badge">
             <div class="title" id="active-plan-title">الباقة العادية</div>
-            <div class="subtitle" id="active-plan-timer">(غير مفعلة)</div>
+            <div class="subtitle" id="active-plan-timer">(نشطة)</div>
         </div>
         <div class="app-title">OmniFix AI</div>
         <button class="menu-icon" onclick="toggleSidebar()">☰</button>
     </header>
 
-    <!-- منطقة الشات -->
     <div id="display-area">
-        <div class="welcome-card">
+        <div class="welcome-card" id="welcomeCard">
             <h2>OmniFix AI</h2>
             <p>المساعد الذكي المتكامل للدردشة والنصوص والوسائط.</p>
         </div>
     </div>
 
-    <!-- شريط الإدخال المحدث -->
     <div class="input-container">
-        <div class="media-preview-bar" id="preview-bar"></div>
         <div class="input-box">
-            <button class="send-btn" onclick="sendMessage()">إرسال</button>
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">إرسال</button>
             <div class="input-wrapper">
-                <input type="text" id="userInput" placeholder="اكتب رسالتك هنا...">
+                <input type="text" id="userInput" placeholder="اكتب رسالتك هنا..." onkeydown="if(event.key==='Enter') sendMessage()">
                 <button class="add-btn" onclick="document.getElementById('fileInput').click()">+</button>
-                <input type="file" id="fileInput" accept="image/*,video/*" multiple style="display:none" onchange="handleFiles(this)">
+                <input type="file" id="fileInput" accept="image/*,video/*" style="display:none">
             </div>
-        </div>
-    </div>
-
-    <!-- نافذة 30 باقة -->
-    <div id="modal-plans">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>قائمة الباقات (30 باقة)</h3>
-                <button onclick="closePlansModal()" style="background:none; border:none; color:white; font-size:20px;">✕</button>
-            </div>
-            <div class="plans-list" id="plans-container"></div>
         </div>
     </div>
 
     <script>
-        let adProgress = {};
-        let activePlan = null;
-        let timerInterval = null;
-        let selectedFiles = [];
-
-        const planTitles = [
-            "الأساسية", "الذكاء السريع", "الذكاء المتقدم", "الذكاء الفائق", "المحترف",
-            "الاحترافية", "المبتكر", "المطور", "الخبير", "العملاق",
-            "المطورة Max", "Super AI", "Ultra Speed", "Mega AI", "Turbo Fast",
-            "Omni16 Pro", "Omni17 Ultra", "Omni18 Master", "Omni19 Elite", "Omni20 Prime",
-            "Omni21 Plus", "Omni22 Max", "Omni23 Turbo", "Omni24 Hyper", "Omni25 Ultimate",
-            "Omni26 Max", "Omni27 Max", "Omni28 Ultra", "باقة الذكاء الخارق", "باقة VIP الاحترافية"
-        ];
-
-        document.addEventListener('DOMContentLoaded', () => {
-            try { adProgress = JSON.parse(localStorage.getItem('omnifix_ads')) || {}; } catch(e) {}
-            try { activePlan = JSON.parse(localStorage.getItem('omnifix_active_plan')) || null; } catch(e) {}
-            
-            renderPlansList();
-            initTimer();
-        });
+        let chatHistory = [];
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
         }
 
-        function openPlansModal() {
-            document.getElementById('modal-plans').style.display = 'flex';
-        }
-
-        function closePlansModal() {
-            document.getElementById('modal-plans').style.display = 'none';
-        }
-
-        function renderPlansList() {
-            const container = document.getElementById('plans-container');
-            container.innerHTML = '';
-
-            for (let i = 1; i <= 30; i++) {
-                const title = `باقة ${i}: ${planTitles[i - 1]}`;
-                const current = adProgress[i] || 0;
-
-                const item = document.createElement('div');
-                item.className = 'plan-item';
-                item.innerHTML = `
-                    <div class="plan-info">
-                        <h4>${title}</h4>
-                        <p>⏱️ 12 ساعة | 📺 مشاهدة ${i} إعلانات</p>
-                    </div>
-                    <button class="ad-btn" onclick="watchAd(${i}, '${title}')">مشاهدة (${current}/${i})</button>
-                `;
-                container.appendChild(item);
-            }
-        }
-
-        function watchAd(planId, title) {
-            let count = (adProgress[planId] || 0) + 1;
-            adProgress[planId] = count;
-            localStorage.setItem('omnifix_ads', JSON.stringify(adProgress));
-
-            if (count >= planId) {
-                adProgress[planId] = 0;
-                localStorage.setItem('omnifix_ads', JSON.stringify(adProgress));
-
-                const expireTime = Date.now() + (12 * 60 * 60 * 1000); // 12 ساعة
-                activePlan = { title: title, expireTime: expireTime };
-                localStorage.setItem('omnifix_active_plan', JSON.stringify(activePlan));
-
-                alert(`تهانينا! تم تفعيل ${title} بنجاح لمدة 12 ساعة.`);
-                initTimer();
-                closePlansModal();
-            } else {
-                alert(`شاهدت إعلان (${count}/${planId}). متبقي ${planId - count} إعلان لتفعيل الباقة.`);
-            }
-            renderPlansList();
-        }
-
-        function initTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-
-            if (activePlan && activePlan.expireTime > Date.now()) {
-                document.getElementById('active-plan-title').innerText = activePlan.title;
-                updateCountdown();
-                timerInterval = setInterval(updateCountdown, 1000);
-            } else {
-                document.getElementById('active-plan-title').innerText = 'الباقة العادية';
-                document.getElementById('active-plan-timer').innerText = '(غير مفعلة)';
-            }
-        }
-
-        function updateCountdown() {
-            const diff = activePlan.expireTime - Date.now();
-            if (diff <= 0) {
-                clearInterval(timerInterval);
-                activePlan = null;
-                localStorage.removeItem('omnifix_active_plan');
-                document.getElementById('active-plan-title').innerText = 'الباقة العادية';
-                document.getElementById('active-plan-timer').innerText = '(غير مفعلة)';
-                return;
-            }
-
-            const h = Math.floor(diff / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-            const pad = (n) => n < 10 ? '0' + n : n;
-            document.getElementById('active-plan-timer').innerText = `${pad(h)}:${pad(m)}:${pad(s)}`;
-        }
-
-        function handleFiles(input) {
-            const files = Array.from(input.files);
-            files.forEach(file => {
-                const reader = new FileReader();
-                const isVideo = file.type.startsWith('video/');
-                reader.onload = (e) => {
-                    selectedFiles.push({ src: e.target.result, isVideo });
-                    renderPreviews();
-                };
-                reader.readAsDataURL(file);
-            });
-            input.value = '';
-        }
-
-        function renderPreviews() {
-            const bar = document.getElementById('preview-bar');
-            if (selectedFiles.length === 0) {
-                bar.style.display = 'none';
-                return;
-            }
-            bar.style.display = 'flex';
-            bar.innerHTML = '';
-            selectedFiles.forEach((file, idx) => {
-                const box = document.createElement('div');
-                box.className = 'thumb-box';
-                box.innerHTML = file.isVideo ? `<video src="${file.src}"></video>` : `<img src="${file.src}">`;
-                box.innerHTML += `<button class="remove-btn" onclick="removeFile(${idx})">×</button>`;
-                bar.appendChild(box);
-            });
-        }
-
-        function removeFile(idx) {
-            selectedFiles.splice(idx, 1);
-            renderPreviews();
-        }
-
-        function sendMessage() {
+        async function sendMessage() {
             const input = document.getElementById('userInput');
-            if (!input.value.trim() && selectedFiles.length === 0) return;
+            const text = input.value.trim();
+            if (!text) return;
 
             const area = document.getElementById('display-area');
-            const msg = document.createElement('div');
-            msg.className = 'message-bubble';
-            msg.innerText = input.value;
+            const welcomeCard = document.getElementById('welcomeCard');
+            if (welcomeCard) welcomeCard.remove();
 
-            area.appendChild(msg);
+            // عرض رسالة المستخدم
+            const userMsg = document.createElement('div');
+            userMsg.className = 'msg-user';
+            userMsg.innerText = text;
+            area.appendChild(userMsg);
+
             input.value = '';
-            selectedFiles = [];
-            renderPreviews();
+            scrollToBottom();
+
+            // إضافة الرسالة لسجل المحادثة
+            chatHistory.push({ role: "user", content: text });
+
+            // إنشاء عنصر إجابة الذكاء الاصطناعي
+            const aiMsg = document.createElement('div');
+            aiMsg.className = 'msg-ai';
+            aiMsg.innerText = 'جاري التفكير...';
+            area.appendChild(aiMsg);
+            scrollToBottom();
+
+            try {
+                // الاتصال بـ Backend API الموجود في Vercel
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: chatHistory })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.reply) {
+                    aiMsg.innerText = data.reply;
+                    chatHistory.push({ role: "assistant", content: data.reply });
+                } else {
+                    aiMsg.innerText = 'حدث خطأ أثناء الاتصال بالخادم: ' + (data.error || 'يرجى التثبت من الـ API Key');
+                }
+            } catch (err) {
+                aiMsg.innerText = 'خطأ في الاتصال بالشبكة.';
+            }
+
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const area = document.getElementById('display-area');
             area.scrollTop = area.scrollHeight;
         }
 
         function newChat() {
+            chatHistory = [];
             document.getElementById('display-area').innerHTML = `
-                <div class="welcome-card">
+                <div class="welcome-card" id="welcomeCard">
                     <h2>OmniFix AI</h2>
                     <p>المساعد الذكي المتكامل للدردشة والنصوص والوسائط.</p>
                 </div>
@@ -538,5 +276,4 @@
         }
     </script>
 </body>
-    </html>
-    
+</html>
