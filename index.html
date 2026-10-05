@@ -5,64 +5,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OmniFix AI</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: #0a0f1d; color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        header { height: 60px; background: #111827; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; border-bottom: 1px solid #374151; }
-        .btn-header { background: #2563eb; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 14px; cursor: pointer; }
-        
-        #display-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .welcome { text-align: center; margin: auto; background: #1f2937; padding: 20px; border-radius: 12px; }
-        
-        .input-bar { background: #111827; padding: 10px; display: flex; gap: 8px; border-top: 1px solid #374151; }
-        .input-bar input { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #374151; background: #0a0f1d; color: white; outline: none; }
-        .input-bar button { background: #2563eb; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        :root {
+            --bg-dark: #090d16;
+            --panel-bg: #111827;
+            --accent: #2563eb;
+            --green-btn: #059669;
+            --text: #ffffff;
+        }
 
-        #sidebar { position: fixed; top: 0; right: -280px; width: 280px; height: 100%; background: #111827; z-index: 999; transition: 0.3s; padding: 20px; box-shadow: -2px 0 10px rgba(0,0,0,0.5); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-dark); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        header { height: 60px; background: var(--panel-bg); display: flex; justify-content: space-between; align-items: center; padding: 0 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        
+        .plan-badge { background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; padding: 4px 10px; border-radius: 6px; text-align: center; cursor: pointer; }
+        .plan-badge .title { color: #34d399; font-size: 11px; font-weight: bold; }
+        .plan-badge .subtitle { color: #a7f3d0; font-size: 9px; }
+
+        .app-title { font-size: 18px; font-weight: bold; color: #3b82f6; }
+        .menu-icon { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 5px; }
+
+        #display-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .welcome-card { margin: auto; text-align: center; background: rgba(31, 41, 55, 0.5); padding: 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); width: 90%; max-width: 350px; }
+        .welcome-card h2 { font-size: 20px; color: #3b82f6; margin-bottom: 8px; }
+        .welcome-card p { font-size: 12px; color: #9ca3af; }
+
+        .input-container { background: var(--panel-bg); border-top: 1px solid rgba(255,255,255,0.1); padding: 10px; }
+        .input-box { display: flex; align-items: center; gap: 8px; }
+        .input-wrapper { flex: 1; background: var(--bg-dark); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; padding: 0 8px; }
+        .input-wrapper input { width: 100%; background: transparent; border: none; color: white; padding: 10px; outline: none; font-size: 14px; }
+        .add-btn { background: none; border: none; color: #3b82f6; font-size: 24px; cursor: pointer; padding: 0 4px; }
+        .send-btn { background: var(--accent); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+
+        #sidebar { position: fixed; top: 0; right: -280px; width: 280px; height: 100%; background: var(--panel-bg); z-index: 9999; transition: 0.3s ease; padding: 20px; box-shadow: -4px 0 15px rgba(0,0,0,0.5); }
         #sidebar.open { right: 0; }
     </style>
 </head>
 <body>
 
     <div id="sidebar">
-        <h3>المحادثات</h3>
-        <br>
-        <button class="btn-header" onclick="closeMenu()">إغلاق القائمة</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3>القائمة</h3>
+            <button onclick="toggleSidebar()" style="background:none; border:none; color:white; font-size:20px;">✕</button>
+        </div>
+        <button onclick="alert('محادثة جديدة')" style="width:100%; padding:10px; background:var(--accent); color:white; border:none; border-radius:6px; font-weight:bold;">+ محادثة جديدة</button>
     </div>
 
     <header>
-        <button class="btn-header" onclick="alert('تم النقر على الباقات!')">الباقات</button>
-        <h2>OmniFix AI</h2>
-        <button class="btn-header" onclick="openMenu()">☰ القائمة</button>
+        <div class="plan-badge" onclick="alert('قائمة الباقات')">
+            <div class="title">الباقة العادية</div>
+            <div class="subtitle">(غير مفعلة)</div>
+        </div>
+        <div class="app-title">OmniFix AI</div>
+        <button class="menu-icon" onclick="toggleSidebar()">☰</button>
     </header>
 
     <div id="display-area">
-        <div class="welcome">
-            <h3>مرحباً بك في OmniFix AI</h3>
-            <p>أكتب رسالتك في الأسفل للتجربة</p>
+        <div class="welcome-card">
+            <h2>OmniFix AI</h2>
+            <p>المساعد الذكي المتكامل للدردشة والنصوص والوسائط.</p>
         </div>
     </div>
 
-    <div class="input-bar">
-        <input type="text" id="userInput" placeholder="اكتب هنا...">
-        <button onclick="sendMsg()">إرسال</button>
+    <div class="input-container">
+        <div class="input-box">
+            <button class="send-btn" onclick="sendMessage()">إرسال</button>
+            <div class="input-wrapper">
+                <input type="text" id="userInput" placeholder="اكتب رسالتك هنا...">
+                <button class="add-btn" onclick="document.getElementById('fileInput').click()">+</button>
+                <input type="file" id="fileInput" style="display:none">
+            </div>
+        </div>
     </div>
 
     <script>
-        function openMenu() {
-            document.getElementById('sidebar').classList.add('open');
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
         }
-        function closeMenu() {
-            document.getElementById('sidebar').classList.remove('open');
-        }
-        function sendMsg() {
-            const inp = document.getElementById('userInput');
-            if(!inp.value) return;
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            if(!input.value.trim()) return;
+            
             const area = document.getElementById('display-area');
-            area.innerHTML += `<div style="background:#2563eb; padding:10px; border-radius:8px; align-self:flex-start;">${inp.value}</div>`;
-            inp.value = '';
+            const msg = document.createElement('div');
+            msg.style.cssText = "background: rgba(37,99,235,0.2); border: 1px solid #2563eb; padding: 10px; border-radius: 8px; align-self: flex-start; max-width: 80%; font-size: 14px;";
+            msg.innerText = input.value;
+            
+            area.appendChild(msg);
+            input.value = '';
+            area.scrollTop = area.scrollHeight;
         }
     </script>
 </body>
 </html>
-
