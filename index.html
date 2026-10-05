@@ -29,7 +29,15 @@
             background-color: var(--bg-dark);
             color: var(--text);
             overflow: hidden;
-            position: fixed;
+        }
+
+        /* الهيكل الرئيسي باستخدام Flexbox */
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100dvh; /* استخدام dvh لضمان التوافق مع شاشات الهواتف */
+            width: 100vw;
+            position: relative;
         }
 
         /* القائمة الجانبية */
@@ -45,7 +53,7 @@
             right: -280px;
             height: 100%;
             transition: right 0.3s ease;
-            z-index: 500;
+            z-index: 1000;
             border-left: 1px solid rgba(255,255,255,0.08);
             box-shadow: -5px 0 15px rgba(0,0,0,0.5);
         }
@@ -124,15 +132,7 @@
             padding: 2px 6px;
         }
 
-        /* الهيكل الرئيسي */
-        #app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-        }
-
+        /* الشريط العلوي */
         header {
             height: 60px;
             display: flex;
@@ -141,6 +141,7 @@
             padding: 0 16px;
             background: var(--panel-bg);
             border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0;
             z-index: 10;
         }
 
@@ -180,7 +181,7 @@
             padding: 5px;
         }
 
-        /* منطقة عرض الرسائل */
+        /* منطقة المحادثة */
         #display-area {
             flex: 1;
             padding: 15px;
@@ -188,7 +189,6 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            padding-bottom: 120px; /* مسافة حماية سفلية ممتدة بعد رفع الشريط */
         }
 
         .welcome-card {
@@ -213,7 +213,7 @@
             font-size: 13px;
         }
 
-        /* الفقاعات */
+        /* فقاعات الدردشة */
         .user-bubble {
             align-self: flex-start;
             background: rgba(37, 99, 235, 0.2);
@@ -248,21 +248,16 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* شريط الإدخال المرفوع عن الأسفل */
+        /* شريط الإدخال المباشر والمرن */
         .input-container {
-            position: absolute;
-            bottom: 20px; /* رفع الشريط بمقدار 20 بكسل */
-            left: 12px;
-            right: 12px;
+            flex-shrink: 0;
             background: var(--panel-bg);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 14px;
+            border-top: 1px solid rgba(255,255,255,0.15);
             padding: 10px 12px;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            z-index: 100;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            z-index: 50;
         }
 
         .media-preview-bar {
@@ -321,18 +316,18 @@
             background: transparent;
             border: none;
             color: white;
-            padding: 8px 4px;
+            padding: 10px 4px;
             outline: none;
-            font-size: 14px;
+            font-size: 15px;
         }
 
         .add-btn {
             background: none;
             border: none;
             color: #3b82f6;
-            font-size: 26px;
+            font-size: 28px;
             cursor: pointer;
-            padding: 0 4px;
+            padding: 0 6px;
             line-height: 1;
         }
 
@@ -356,7 +351,7 @@
             background: rgba(0,0,0,0.85);
             justify-content: center;
             align-items: center;
-            z-index: 600;
+            z-index: 2000;
         }
 
         .modal-content {
@@ -643,4 +638,12 @@
                     box.innerHTML = `<img src="${item.src}"><button class="remove-btn" onclick="removeThumb(${idx})">×</button>`;
                 }
                 bar.appendChild(box);
-      
+            });
+        }
+
+        function removeThumb(idx) {
+            selectedFiles.splice(idx, 1);
+            renderPreviewThumbs();
+        }
+
+        function createNewChat() {
